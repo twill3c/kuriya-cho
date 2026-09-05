@@ -1,0 +1,1 @@
+{"v": "1.2", "ts": "2026-09-05T21:20:01+09:00", "project": "kuriya-cho", "loop_id": "loop_009", "event": "loop_start", "data": {"goal": "くりや帖 L8: 本文の全訳(F-07)。牛・仔牛・羊・仔羊・豚の 200 篇", "spec_refs": ["F-07", "G-08"], "scaffold_version": "1.30.0", "agent": "claude-opus-5"}}
