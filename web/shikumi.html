@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仕組みを見る — くりや帖</title>
+<meta name="description" content="何をどう数えたか。そして、測って捨てた見込みの記録。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">仕組みを見る —— 何をどう数えたか。<strong>測って捨てた見込み</strong>も、消さずに置いてあります。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>測って捨てた見込み</h2>
+    <p class="lead">
+      このアプリは「1814 年の綴りが読解の壁だ」という見込みから始めました。
+      <strong>その見込みは実測で壊れました。</strong>
+    </p>
+    <div class="scroll-x"><table id="spelling"></table></div>
+    <p class="note" id="spelling-note"></p>
+    <p class="note">
+      同じ道具で、綴りが現代のものになった後の本 —— オーギュスト・エリー
+      『Traité Général de la Cuisine Maigre』(序文 1896 年 12 月)—— を測ると、
+      現代フランス語の語彙集から外れる語は<strong>1814 年の本より多い</strong>のです。
+      外れる語の多寡を決めているのは綴りの古さではなく、料理語と固有名の密度でした。
+      綴りを寄せる層は残しましたが、このアプリの重心は和訳と用語集に移してあります。
+    </p>
+    <p class="note">
+      教科書に必ず載る綴りの規則 <span class="serif">-ans → -ants</span> も、規則としては書けませんでした。
+      現代フランス語の語彙集で <span class="serif">-ans / -ens</span> に終わる語
+      <span id="tb-applies">—</span> 語に当てると、<strong><span id="tb-breaks">—</span> 語が語でなくなります</strong>
+      (<span class="serif">anciens → ancients</span>)。本書に出る 15 語だけを表に載せました。
+    </p>
+  </section>
+
+  <section>
+    <h2>本文をどう割ったか</h2>
+    <div class="scroll-x"><table id="parse"></table></div>
+    <p class="note" id="parse-note"></p>
+  </section>
+
+  <section>
+    <h2>目次との突き合わせ</h2>
+    <p class="note">
+      抽出器の正しさを抽出器で確かめないために、この本自身が持っている検算を使いました。
+      巻末の目次は章ごとに項目を並べているので、本文側の抽出結果と章単位で突き合わせられます。
+    </p>
+    <div class="scroll-x"><table id="recon"></table></div>
+  </section>
+
+  <section>
+    <h2>色分けはどこまで当たっているか</h2>
+    <div class="scroll-x"><table id="extract"></table></div>
+    <p class="note" id="extract-note"></p>
+  </section>
+
+  <section>
+    <h2>和訳の充填</h2>
+    <div class="scroll-x"><table id="yaku"></table></div>
+    <p class="note">
+      本文の和訳は途中です。分子と分母で出しているのは、訳していないものを訳したように
+      見せないためです。訳す順番は<strong>他の項からの被参照が多い順</strong>で、
+      気分ではなく数が決めています。
+    </p>
+  </section>
+
+  <section>
+    <h2>使った素材</h2>
+    <div class="scroll-x"><table id="sources"></table></div>
+    <p class="note">
+      現代フランス語の語彙集(344,060 形)は<strong>配っていません</strong>。
+      正規化の効きを外から判定するための道具であって、画面が使うものではないからです。
+    </p>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadMeta, esc, setActiveTab, CATEGORY_LABEL } from './js/app.js';
+setActiveTab();
+
+const meta = await loadMeta();
+const pc = (x) => `${(100 * x).toFixed(2)}%`;
+const n = (x) => x.toLocaleString('ja-JP');
+
+const sp = meta.spelling;
+document.getElementById('spelling').innerHTML = `
+  <tr><th></th><th class="num">照合した語形</th><th class="num">語彙集に無い</th><th class="num">割合</th></tr>
+  <tr><th>1814 年・本書の地の文</th><td class="num">${n(sp.book_forms)}</td><td class="num">${n(sp.book_misses)}</td><td class="num">${pc(sp.book_rate)}</td></tr>
+  <tr><th>↑ 綴りを現代に寄せた後</th><td class="num">${n(83081)}</td><td class="num">${n(sp.normalized_misses)}</td><td class="num">${pc(sp.normalized_rate)}</td></tr>
+  <tr><th>1896 年・同じジャンルの対照</th><td class="num">${n(sp.control_forms)}</td><td class="num">${n(sp.control_misses)}</td><td class="num">${pc(sp.control_rate)}</td></tr>`;
+document.getElementById('spelling-note').textContent =
+  `${sp.measured_on} 実測(${sp.how})。対照は ${sp.control_title}。置き換えた箇所は ${sp.changes} 件です。`;
+document.getElementById('tb-applies').textContent = n(sp.textbook_rule_applies_to);
+document.getElementById('tb-breaks').textContent = n(sp.textbook_rule_breaks);
+
+const p = meta.parse;
+const cov = meta.coverage;
+const mn = meta.menus;
+document.getElementById('parse').innerHTML = `
+  <tr><th>章</th><td class="num">${p.sections}</td><td>大文字で組まれた見出し</td></tr>
+  <tr><th>レシピ</th><td class="num">${p.recipes}</td><td>前後を空行で挟まれた斜体の見出し</td></tr>
+  <tr><th>目次の項目</th><td class="num">${p.toc_entries}</td><td>件数オラクル</td></tr>
+  <tr><th>章の一致</th><td class="num">${p.matched_sections} / ${p.sections}</td><td>説明のつかない食い違い ${p.unexplained.length} 件</td></tr>
+  <tr><th>本文の消費率</th><td class="num">${pc(cov.body_rate)}</td><td>${n(cov.body_lines)} 行がどれかの単位に帰属</td></tr>
+  <tr><th>献立の消費率</th><td class="num">${pc(cov.menu_rate)}</td><td>${n(cov.menu_lines)} 行</td></tr>
+  <tr><th>献立 / 組 / 皿</th><td class="num">${mn.menus} / ${mn.courses} / ${mn.dishes}</td><td>数詞と合わない組 ${mn.mismatched.length}(本のとおり)</td></tr>`;
+document.getElementById('parse-note').textContent =
+  '消費率は「取り落としたものの姿」を見せる計器です。件数オラクルは「いくつ取れたか」しか言いません。' +
+  'この検算を置いた直後に、献立の第二饗応 26 皿を丸ごと落としていたことが分かりました。';
+
+document.getElementById('recon').innerHTML =
+  '<tr><th>章</th><th class="num">本文</th><th class="num">目次</th><th></th></tr>' +
+  p.rows
+    .map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.body}</td>
+      <td class="num">${r.toc === null ? '—' : r.toc}</td>
+      <td>${r.match ? '' : '<span class="badge ref">説明つきの差</span>'}</td></tr>`)
+    .join('');
+
+const ex = meta.extract;
+document.getElementById('extract').innerHTML =
+  '<tr><th>分類</th><th class="num">付いた項</th><th></th></tr>' +
+  Object.entries(ex.with_category)
+    .map(([k, v]) => `<tr><td>${esc(CATEGORY_LABEL[k] || k)}</td><td class="num">${v} / ${ex.recipes}</td>
+      <td>${pc(v / ex.recipes)}</td></tr>`)
+    .join('') +
+  `<tr><th>語の被覆</th><td class="num">${pc(ex.word_coverage)}</td><td>本文の語のうち色が付いた割合</td></tr>`;
+document.getElementById('extract-note').textContent =
+  `材料が付かない ${ex.missing_ingredient.length} 篇と工程が付かない ${ex.missing_action.length} 篇は、` +
+  '抽出器の穴ではなく、本文が「他の項を見よ」だけの項です。被覆率を上げること自体は目的にしていません ——' +
+  '接続詞に色を付けても読みやすくはならないからです。';
+
+const y = meta.yaku;
+document.getElementById('yaku').innerHTML = `
+  <tr><th>章名</th><td class="num">${y.sections_translated} / ${y.sections}</td></tr>
+  <tr><th>料理名</th><td class="num">${y.titles_translated} / ${y.recipes}</td></tr>
+  <tr><th>本文</th><td class="num">${y.bodies_translated} / ${y.recipes}</td></tr>
+  <tr><th>用語集</th><td class="num">${y.glossary_terms} 語</td></tr>`;
+
+document.getElementById('sources').innerHTML =
+  '<tr><th>素材</th><th class="num">大きさ</th><th>sha256(先頭)</th></tr>' +
+  meta.source
+    .map((s) => `<tr><td><a href="${esc(s.url)}">${esc(s.key)}</a><div class="note">${esc(s.note)}</div></td>
+      <td class="num">${n(s.bytes)} B</td><td class="serif">${esc(s.sha256.slice(0, 16))}</td></tr>`)
+    .join('');
+</script>
+</body>
+</html>

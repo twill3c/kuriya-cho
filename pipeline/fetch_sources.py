@@ -1,11 +1,13 @@
 """外部素材の取得(F-01)。
 
-取得するのは二種類:
+取得するのは三種類:
 
 1. **本文** — Project Gutenberg #64976 『L'Art du Cuisinier, tome I』(Beauvilliers 1814)。
    底本は BnF/Gallica の画像。PG の plain-text UTF-8 版を使う。
-2. **現代フランス語の語彙集** — 正規化(1814 年綴り → 現代綴り)の**非循環オラクル**。
-   自分で書いた規則の正しさを、自分の規則で判定してはならない(G-02)。
+2. **対照コーパス** — PG #6966、同じジャンルで綴りが現代のもの(1896 年)。
+   「0.87% は遠いのか近いのか」を言うための基準線。対照が無いと割合は解釈できない。
+3. **現代フランス語の語彙集** — 正規化(1814 年綴り → 現代綴り)の**非循環オラクル**。
+   自分で書いた規則の正しさを、自分の規則で判定してはならない(G-04)。
    外部の権威(Grammalecte/Dicollecte 由来の屈折形リスト)に照らす。
 
 いずれも `data/raw/` にキャッシュし、二度目以降はネットワークに触れない。
@@ -47,9 +49,9 @@ SOURCES: tuple[Source, ...] = (
         url="https://www.gutenberg.org/ebooks/6966.txt.utf-8",
         filename="pg6966.txt",
         note=(
-            "Auguste Hélie, Traité Général de la Cuisine Maigre (Paris, 1896-12 序)。"
-            "PG #6966。**対照コーパス** —— 1835 年の綴り改革より後、同じジャンルの"
-            "フランス語料理書。1814 年の綴りの遠さを測るための基準線に使う。"
+            "Auguste Hélie, Traité Général de la Cuisine Maigre(パリ・序文 1896 年 12 月)。"
+            "PG #6966。対照コーパス —— 1835 年の綴り改革より後の、同じジャンルの"
+            "フランス語料理書。1814 年の綴りの遠さを測る基準線に使う。"
         ),
     ),
     Source(
@@ -125,18 +127,25 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     keys = args.only.split(",") if args.only else [s.key for s in SOURCES]
-    manifest = []
+    # `--only` で一部だけ取り直したとき、台帳を**その一件だけに書き換えない**。
+    # 2026-09-05 に一度そうなり、「使った素材」の画面が対照コーパス 1 件しか出さなくなった
+    manifest_path = RAW / "SOURCES.json"
+    existing: dict[str, dict] = {}
+    if manifest_path.exists():
+        existing = {row["key"]: row for row in json.loads(manifest_path.read_text(encoding="utf-8"))}
     for key in keys:
         src = BY_KEY[key]
         dest = fetch(src, force=args.force)
         size = dest.stat().st_size
         digest = sha256_of(dest)
-        manifest.append(
-            {"key": key, "url": src.url, "bytes": size, "sha256": digest, "note": src.note}
-        )
+        existing[key] = {
+            "key": key, "url": src.url, "bytes": size, "sha256": digest, "note": src.note
+        }
         print(f"{key:14s} {size:>9,d} B  {digest[:16]}  {dest.relative_to(ROOT)}")
 
-    (RAW / "SOURCES.json").write_text(
+    order = {s.key: i for i, s in enumerate(SOURCES)}
+    manifest = sorted(existing.values(), key=lambda r: order.get(r["key"], 99))
+    manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     return 0

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卓 — くりや帖</title>
+<meta name="description" content="1814 年の食卓の組み方。献立 13 組・皿 488。見出しの数詞と皿数を突き合わせている。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">卓 —— 何人の客に、何をいくつ、どの順で出したか。本の巻頭に置かれた献立です。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>献立をえらぶ</h2>
+    <div class="chips" id="menus"></div>
+    <p class="note">
+      組の見出しに書かれた数詞(<span class="serif">Seize Entrées</span> = 16)と、
+      並んでいる皿の数を突き合わせています。合わない組には印を付けました ——
+      直したのではなく、<strong>本のほうがそう書いている</strong>という意味です。
+    </p>
+  </section>
+
+  <section id="detail">
+    <h2 id="m-title">—</h2>
+    <p class="note" id="m-sub"></p>
+    <div id="courses"></div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadMenus, esc, setActiveTab } from './js/app.js';
+setActiveTab();
+
+const { menus } = await loadMenus();
+const menusEl = document.getElementById('menus');
+const coursesEl = document.getElementById('courses');
+
+const SEASON = { PRINTEMPS: '春', HIVER: '冬' };
+
+menus.forEach((m, i) => {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.type = 'button';
+  const dishes = m.courses.reduce((n, c) => n + c.actual, 0);
+  b.innerHTML = `${esc(SEASON[m.season] || m.season)}・${esc(m.title.replace(/^MENU DE /i, ''))}<span class="n">${dishes} 皿</span>`;
+  b.addEventListener('click', () => show(i));
+  menusEl.appendChild(b);
+});
+
+function show(i) {
+  const m = menus[i];
+  menusEl.querySelectorAll('.chip').forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+  document.getElementById('m-title').textContent = m.title;
+  const dishes = m.courses.reduce((n, c) => n + c.actual, 0);
+  document.getElementById('m-sub').textContent =
+    `${SEASON[m.season] || m.season} ・ ${m.service} ・ ${m.courses.length} 組 ・ ${dishes} 皿`;
+
+  coursesEl.innerHTML = m.courses
+    .map((c) => {
+      const declared = c.declared.length ? c.declared.join(' か ') : null;
+      let mark = '';
+      if (declared && !c.declared.includes(c.actual)) {
+        mark = ` <span class="badge ref">見出しは ${esc(declared)}、並ぶのは ${c.actual}</span>`;
+      } else if (declared) {
+        mark = ` <span class="badge">${esc(declared)} 皿</span>`;
+      }
+      const service = c.service && c.service !== m.service
+        ? ` <span class="badge">${esc(c.service)}</span>` : '';
+      const dishes = c.dishes
+        .map((d) => `<div class="dish"><span class="n">${d.n}</span>${esc(d.text)}${
+          d.plate ? ` <span class="plate">卓図 ${d.plate}</span>` : ''}</div>`)
+        .join('');
+      return `<div class="menu-course">
+        <h3>${esc(c.title || '(見出しなし)')}${mark}${service}</h3>
+        <div class="dishes">${dishes || '<div class="note">この組には皿が並んでいません(本のとおりです)。</div>'}</div>
+      </div>`;
+    })
+    .join('');
+}
+show(0);
+</script>
+</body>
+</html>

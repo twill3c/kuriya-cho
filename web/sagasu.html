@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>材料から探す — くりや帖</title>
+<meta name="description" content="1814 年の料理書に実際に出てくる材料 151 種から、レシピ 628 篇を引く。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">材料から探す —— 押した材料が本文に出てくる項を集めます。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>材料を選ぶ</h2>
+    <p class="note" id="chip-note">読み込み中…</p>
+    <div class="chips" id="chips"></div>
+    <p style="margin:.9rem 0 .3rem">
+      <input type="search" id="q" placeholder="料理名で探す(原題・和名どちらでも)" aria-label="料理名で探す">
+      <button class="chip" id="clear" type="button">えらび直す</button>
+    </p>
+  </section>
+
+  <section>
+    <h2 id="result-head">レシピ</h2>
+    <div class="cards" id="results"></div>
+    <p class="note" id="empty" hidden>その組み合わせに当たる項はありませんでした。材料を減らしてみてください。</p>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadIndex, loadSearch, esc, cardHTML, setActiveTab, param } from './js/app.js';
+setActiveTab();
+
+const [index, search] = await Promise.all([loadIndex(), loadSearch()]);
+const byRid = new Map(index.recipes.map((r) => [r.rid, r]));
+const sectionName = new Map(index.sections.map((s) => [s.sid, s.name_ja]));
+for (const r of index.recipes) r.sectionName = sectionName.get(r.sid) || '';
+
+const postings = search.postings;
+const titleTerms = search.title_terms;
+const picked = new Set();
+const chipsEl = document.getElementById('chips');
+const results = document.getElementById('results');
+const emptyEl = document.getElementById('empty');
+const head = document.getElementById('result-head');
+const q = document.getElementById('q');
+
+document.getElementById('chip-note').textContent =
+  `本書に 3 回以上出てくる材料 ${search.chips.length} 種。数は、その材料が出てくる項の数です。`;
+
+for (const { term, count } of search.chips.slice(0, 60)) {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.type = 'button';
+  b.setAttribute('aria-pressed', 'false');
+  b.innerHTML = `${esc(term)}<span class="n">${count}</span>`;
+  b.addEventListener('click', () => {
+    if (picked.has(term)) picked.delete(term); else picked.add(term);
+    b.setAttribute('aria-pressed', String(picked.has(term)));
+    render();
+  });
+  chipsEl.appendChild(b);
+}
+
+document.getElementById('clear').addEventListener('click', () => {
+  picked.clear();
+  q.value = '';
+  chipsEl.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+  render();
+});
+q.addEventListener('input', render);
+
+function norm(s) {
+  return s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/œ/g, 'oe');
+}
+
+function score(r) {
+  const terms = [...picked];
+  const matched = terms.filter((t) => (postings[t] || []).includes(r.rid));
+  const inTitle = matched.filter((t) => (titleTerms[r.rid] || []).includes(t));
+  return { matched, inTitle };
+}
+
+function render() {
+  const text = norm(q.value.trim());
+  let rows = index.recipes;
+  if (text) {
+    rows = rows.filter((r) => norm(r.title).includes(text) || r.title_ja.includes(q.value.trim()));
+  }
+  let scored = rows.map((r) => ({ r, ...score(r) }));
+  if (picked.size) scored = scored.filter((x) => x.matched.length > 0);
+  scored.sort(
+    (a, b) =>
+      b.matched.length - a.matched.length ||
+      b.inTitle.length - a.inTitle.length ||
+      a.r.chars - b.r.chars ||
+      a.r.rid.localeCompare(b.r.rid),
+  );
+
+  const shown = scored.slice(0, 60);
+  head.textContent = picked.size || text
+    ? `当たった項 ${scored.length} 件${scored.length > shown.length ? `(はじめの ${shown.length} 件)` : ''}`
+    : `レシピ ${index.recipes.length} 篇`;
+  emptyEl.hidden = shown.length > 0;
+
+  results.innerHTML = shown
+    .map((x) => {
+      let why = '';
+      if (x.matched.length) {
+        const width = Math.round((x.matched.length / Math.max(1, picked.size)) * 100);
+        const where = x.inTitle.length ? '料理名にも' : '本文に';
+        why = `<div class="why"><span class="bar"><i style="width:${width}%"></i></span>
+          <span class="note">「${esc(x.matched.join('」「'))}」が${where}あります</span></div>`;
+      }
+      return `<a class="card" href="yomu.html?rid=${encodeURIComponent(x.r.rid)}">${cardHTML(x.r, { why })}</a>`;
+    })
+    .join('');
+}
+
+const pre = param('term');
+if (pre) {
+  picked.add(pre);
+  chipsEl.querySelectorAll('.chip').forEach((b) => {
+    if (b.textContent.startsWith(pre)) b.setAttribute('aria-pressed', 'true');
+  });
+}
+render();
+</script>
+</body>
+</html>

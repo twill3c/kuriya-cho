@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>読む — くりや帖</title>
+<meta name="description" content="1814 年の綴り・現代の綴り・日本語の三層で読む。材料と手順は色分け、参照はたどれる。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">読む —— 1814 年の綴り / 現代の綴り / 日本語。どの層からも一手で原文へ戻れます。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="pick">
+    <h2>章をえらぶ</h2>
+    <div class="chips" id="sections"></div>
+  </section>
+
+  <section id="list-wrap" hidden>
+    <h2 id="list-head">項</h2>
+    <div class="cards" id="list"></div>
+  </section>
+
+  <section id="detail" hidden>
+    <h2 id="d-title">—</h2>
+    <p class="note" id="d-sub"></p>
+    <div class="layers">
+      <button type="button" data-layer="orig">1814 年の綴り</button>
+      <button type="button" data-layer="modern">現代の綴り</button>
+      <button type="button" data-layer="ja">日本語</button>
+      <button type="button" id="hl-toggle" aria-pressed="true">色分け</button>
+    </div>
+    <div class="legend" id="legend">
+      <span class="ingredient">材料</span><span class="vessel">道具</span>
+      <span class="quantity">分量</span><span class="heat">火</span><span class="action">工程</span>
+    </div>
+    <div class="body-text hl" id="d-body" style="margin-top:.9rem"></div>
+    <p class="note" id="d-note"></p>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadIndex, loadSection, renderBody, esc, cardHTML, setActiveTab, param } from './js/app.js';
+setActiveTab();
+
+const index = await loadIndex();
+const sectionById = new Map(index.sections.map((s) => [s.sid, s]));
+for (const r of index.recipes) r.sectionName = sectionById.get(r.sid).name_ja;
+
+const sectionsEl = document.getElementById('sections');
+const listWrap = document.getElementById('list-wrap');
+const listEl = document.getElementById('list');
+const listHead = document.getElementById('list-head');
+const detail = document.getElementById('detail');
+const bodyEl = document.getElementById('d-body');
+let current = null;
+let layer = 'ja';
+let highlight = true;
+
+for (const s of index.sections) {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.type = 'button';
+  b.innerHTML = `${esc(s.name_ja)}<span class="n">${s.count}</span>`;
+  if (s.count === 0) {
+    // 地の文だけでレシピを持たない章が 2 つある。押せるのに何も出ないのは嘘なので、
+    // 押せなくしたうえで理由を出す
+    b.disabled = true;
+    b.style.opacity = '.5';
+    b.title = 'この章は地の文だけで、独立した項を持ちません';
+  } else {
+    b.addEventListener('click', () => showSection(s.sid));
+  }
+  sectionsEl.appendChild(b);
+}
+
+function showSection(sid) {
+  const s = sectionById.get(sid);
+  sectionsEl.querySelectorAll('.chip').forEach((b, i) =>
+    b.setAttribute('aria-pressed', String(index.sections[i].sid === sid)));
+  listHead.textContent = `${s.name_ja} — ${s.name}(${s.count} 篇)`;
+  listWrap.hidden = false;
+  listEl.innerHTML = index.recipes
+    .filter((r) => r.sid === sid)
+    .map((r) => `<button class="card" data-rid="${esc(r.rid)}">${cardHTML(r)}</button>`)
+    .join('');
+  listEl.querySelectorAll('.card').forEach((b) =>
+    b.addEventListener('click', () => open(b.dataset.rid)));
+}
+
+async function open(rid) {
+  const light = index.recipes.find((r) => r.rid === rid);
+  const pack = await loadSection(light.sid);
+  current = pack.recipes.find((r) => r.rid === rid);
+  if (!current.paragraphs_ja.length && layer === 'ja') layer = 'modern';
+  detail.hidden = false;
+  document.getElementById('d-title').textContent = current.title_ja || current.title;
+  document.getElementById('d-sub').innerHTML =
+    `<span class="serif">${esc(current.title)}</span> ・ ${esc(light.sectionName)}` +
+    (current.reference_only ? ' ・ <span class="badge ref">参照だけの項</span>' : '');
+  history.replaceState(null, '', `yomu.html?rid=${encodeURIComponent(rid)}`);
+  draw();
+  detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function draw() {
+  document.querySelectorAll('.layers button[data-layer]').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.layer === layer)));
+  document.getElementById('legend').style.display = layer === 'ja' ? 'none' : '';
+  bodyEl.className = `body-text ${highlight ? 'hl' : ''} ${layer === 'orig' ? 'orig' : ''}`;
+  const html = renderBody(current, layer, { highlight });
+  const note = document.getElementById('d-note');
+  if (html === null) {
+    bodyEl.innerHTML = renderBody(current, 'modern', { highlight });
+    note.textContent = 'この項はまだ和訳していません(628 篇中の未訳分です)。現代の綴りで表示しています。';
+  } else {
+    bodyEl.innerHTML = html;
+    note.innerHTML = layer === 'ja'
+      ? '和訳は機械ではなく本プロジェクトで書いたものです。分量は当時の単位のまま残しています(換算していません)。'
+      : layer === 'modern'
+        ? '点線の下線が、綴りを現代に寄せた語です。触れると元の綴りが出ます。'
+        : 'Project Gutenberg #64976 の本文そのままです。';
+  }
+  bodyEl.querySelectorAll('.xref[data-to]').forEach((el) =>
+    el.addEventListener('click', () => {
+      const to = el.dataset.to;
+      if (index.recipes.some((r) => r.rid === to)) open(to);
+      else showSection(to);
+    }));
+}
+
+document.querySelectorAll('.layers button[data-layer]').forEach((b) =>
+  b.addEventListener('click', () => { layer = b.dataset.layer; draw(); }));
+document.getElementById('hl-toggle').addEventListener('click', (e) => {
+  highlight = !highlight;
+  e.currentTarget.setAttribute('aria-pressed', String(highlight));
+  draw();
+});
+
+const rid = param('rid');
+if (rid && index.recipes.some((r) => r.rid === rid)) {
+  showSection(index.recipes.find((r) => r.rid === rid).sid);
+  await open(rid);
+} else {
+  showSection(index.sections[0].sid);
+}
+</script>
+</body>
+</html>

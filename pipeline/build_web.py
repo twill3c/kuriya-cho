@@ -140,6 +140,61 @@ def write_book() -> dict[str, int]:
     return sizes
 
 
+# 入口のビフォー/アフターに使う一品。**和訳が済んでいて短い**ものを選ぶ
+ENTRY_RID = "sauces-38"
+
+
+def build_entry() -> dict[str, object]:
+    """入口の「1814 年の版面 ⇄ いまのカード」に使うデータ。
+
+    版面は PG の plain-text を**そのまま**切り出す(行の折り返しも斜体の下線も原文どおり)。
+    整形したものを「原文」と称さないための切り出しである。
+    """
+    from pipeline.fetch_sources import load_text
+    from pipeline.pg_parse import BODY_END, BODY_START
+
+    raw = load_text("pg64976")
+    body = raw[raw.index(BODY_START) : raw.index(BODY_END)]
+    lines = body.split("\n")
+
+    sections = parse_sections()
+    ordered = [r for s in sections for r in s.recipes]
+    pos = next(i for i, r in enumerate(ordered) if r.rid == ENTRY_RID)
+    target = ordered[pos]
+    # 切る位置は**次の見出しの行**にする。空行の数で切ろうとすると、
+    # 本文は 2 行空けで組まれているので次の項まで走ってしまう(実測で 34 KB になった)
+    start = target.line
+    end = ordered[pos + 1].line if pos + 1 < len(ordered) else len(lines)
+    facsimile = "\n".join(lines[start:end]).rstrip()
+
+    index = crossref.Index(sections)
+    titles_ja = yaku.load_titles()
+    bodies_ja = yaku.load_bodies()
+    return {
+        "rid": target.rid,
+        "facsimile": facsimile,
+        "title": target.title,
+        "title_ja": titles_ja.get(target.rid, ""),
+        "paragraphs": target.paragraphs,
+        "paragraphs_ja": bodies_ja.get(target.rid, []),
+        "changes": [
+            [{"s": c.start, "e": c.end, "old": c.old, "new": c.new, "k": c.kind}
+             for c in normalize.find_changes(p)]
+            for p in target.paragraphs
+        ],
+        "spans": [
+            [{"s": sp.start, "e": sp.end, "c": sp.category} for sp in extract.extract(p)]
+            for p in target.paragraphs
+        ],
+        "refs": [
+            [{"s": ref.start, "e": ref.end, "name": ref.text, "to": ref.target,
+              "status": ref.status}
+             for ref in crossref.references(p, index)]
+            for p in target.paragraphs
+        ],
+    }
+
+
 def build_menus() -> dict[str, object]:
     out = []
     for m in menus.parse_menus():
@@ -217,6 +272,7 @@ def build_meta() -> dict[str, object]:
             "missing_action": ecov["missing_action"],
         },
         "crossref": {
+            "recipes_with_references": cross["recipes_with_references"],
             "references": cross["references"],
             "counts": cross["counts"],
             "resolved_rate": cross["resolved_rate"],
@@ -249,6 +305,7 @@ def build_meta() -> dict[str, object]:
 def main() -> int:
     sizes = {
         **write_book(),
+        "entry.json": _dump("entry.json", build_entry()),
         "menus.json": _dump("menus.json", build_menus()),
         "glossary.json": _dump("glossary.json", {"terms": yaku.load_glossary()}),
         "search.json": _dump("search.json", build_search()),

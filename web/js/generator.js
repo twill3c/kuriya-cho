@@ -4,8 +4,9 @@
 // 候補の並びは Python 側が JSON に書いた順(出現数の降順 → 表記の昇順)をそのまま使う。
 // 二実装照合(T-152)が「だいたい一致」ではなく完全一致を要求できるのはこのためである。
 
-const BEGIN = '';
-const END = '';
+// 連鎖の端を表す印。Python 側と同じ文字列でなければならない(制御文字は使わない)
+const BEGIN = '<begin>';
+const END = '<end>';
 const MAX_TOKENS = 12;
 
 export function mulberry32(seed) {

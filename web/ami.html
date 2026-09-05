@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>網 — くりや帖</title>
+<meta name="description" content="この本は自分自身を 307 回参照する。たどれる参照と、第二巻へ抜けて切れている参照。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">網 —— この本は自分自身を絶えず参照します。200 年前のハイパーテキストです。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>数えたもの</h2>
+    <div class="scroll-x"><table id="counts"></table></div>
+    <p class="note">
+      参照は組版で見分けています —— この版は参照先の項名を斜体で組んでおり、
+      章を指すときだけ大文字になります。ただし斜体は強調にも使うので、
+      直前に「Voyez」「article」という手がかりのあるものだけを参照として数えました。
+      手がかりを見ないと、松露を論じる長い斜体の一段落まで参照として拾ってしまいます。
+    </p>
+  </section>
+
+  <section>
+    <h2>失われた第二巻の目次</h2>
+    <p class="lead" id="absent-lead">—</p>
+    <p class="note">
+      章を指す参照は大文字で組まれます。第一巻の章 32 個はすべて分かっているので、
+      そこに無い章名は<strong>第二巻の章</strong>ということになります。
+      Project Gutenberg に第二巻は収録されていないので、この参照は原理的にたどれません。
+      切れたリンクを黙って消さずに残してあるのは、そのためです。
+    </p>
+  </section>
+
+  <section>
+    <h2>いちばん参照されている項</h2>
+    <p class="note">他の項からの被参照が多い順です。和訳もこの順に進めています。</p>
+    <div class="cards" id="hubs"></div>
+  </section>
+
+  <section>
+    <h2>参照しかしていない項</h2>
+    <p class="note" id="refonly-note">—</p>
+    <div class="cards" id="refonly"></div>
+  </section>
+
+  <section>
+    <h2>たどれない参照先</h2>
+    <div class="scroll-x"><table id="unresolved"></table></div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadIndex, loadMeta, loadSection, esc, cardHTML, setActiveTab } from './js/app.js';
+setActiveTab();
+
+const [index, meta] = await Promise.all([loadIndex(), loadMeta()]);
+const byRid = new Map(index.recipes.map((r) => [r.rid, r]));
+const sectionName = new Map(index.sections.map((s) => [s.sid, s.name_ja]));
+for (const r of index.recipes) r.sectionName = sectionName.get(r.sid) || '';
+
+const c = meta.crossref;
+const pct = (n) => `${(100 * n / c.references).toFixed(1)}%`;
+document.getElementById('counts').innerHTML = `
+  <tr><th>参照の総数</th><td class="num">${c.references}</td><td></td></tr>
+  <tr><th>表題と一致</th><td class="num">${c.counts.exact}</td><td>${pct(c.counts.exact)}</td></tr>
+  <tr><th>表題の一部と一致(略した参照)</th><td class="num">${c.counts.partial}</td><td>${pct(c.counts.partial)}</td></tr>
+  <tr><th>たどれない</th><td class="num">${c.counts.unresolved}</td><td>${pct(c.counts.unresolved)}</td></tr>
+  <tr><th>参照を持つ項</th><td class="num">${c.recipes_with_references}</td><td>${meta.parse.recipes} 篇中</td></tr>`;
+
+document.getElementById('absent-lead').innerHTML = c.absent_sections
+  .map((n) => `<span class="badge ref" style="font-size:.9rem;padding:.15rem .5rem">${esc(n)}</span>`)
+  .join(' ');
+
+// 被参照数は index に無いので、章ごとの本文から数え直す(表示のためだけの集計)
+const inbound = new Map();
+const sids = [...new Set(index.recipes.map((r) => r.sid))];
+const packs = await Promise.all(sids.map((sid) => loadSection(sid)));
+for (const pack of packs) {
+  for (const r of pack.recipes) {
+    for (const para of r.refs) {
+      for (const ref of para) {
+        if (ref.to && byRid.has(ref.to)) inbound.set(ref.to, (inbound.get(ref.to) || 0) + 1);
+      }
+    }
+  }
+}
+const hubs = [...inbound.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12);
+document.getElementById('hubs').innerHTML = hubs
+  .map(([rid, n]) => {
+    const r = byRid.get(rid);
+    const why = `<div class="why"><span class="bar"><i style="width:${Math.round(100 * n / hubs[0][1])}%"></i></span>
+      <span class="note">${n} 回参照されています</span></div>`;
+    return `<a class="card" href="yomu.html?rid=${encodeURIComponent(rid)}">${cardHTML(r, { why })}</a>`;
+  })
+  .join('');
+
+const refOnly = c.reference_only;
+document.getElementById('refonly-note').textContent =
+  `本文が実質「他の項を見よ」だけの項が ${refOnly.length} 篇あります。書き落としではなく、本のつくりです。`;
+document.getElementById('refonly').innerHTML = refOnly
+  .slice(0, 12)
+  .map((rid) => `<a class="card" href="yomu.html?rid=${encodeURIComponent(rid)}">${cardHTML(byRid.get(rid))}</a>`)
+  .join('');
+
+document.getElementById('unresolved').innerHTML =
+  '<tr><th>参照先の名</th><th class="num">回数</th></tr>' +
+  c.unresolved_names
+    .slice(0, 24)
+    .map(([name, n]) => `<tr><td class="serif">${esc(name)}</td><td class="num">${n}</td></tr>`)
+    .join('');
+</script>
+</body>
+</html>

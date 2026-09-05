@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>遊ぶ — くりや帖</title>
+<meta name="description" content="本書の料理名の並び方から、ありそうでない一皿の名前を作る。作れない料理です。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">遊ぶ —— 本書の料理名の並び方をなぞって、ありそうでない一皿の名前を作ります。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <div class="chips" id="kinds"></div>
+    <p style="margin:.9rem 0 .2rem">
+      <label for="step" class="note">まじめ ⇄ 気まぐれ</label><br>
+      <input type="range" id="step" min="0" max="3" value="1" style="width:min(24rem,100%)">
+      <span class="note" id="step-label"></span>
+    </p>
+    <div class="dish-card" style="margin:1.1rem 0">
+      <div class="name serif" id="name">—</div>
+      <div class="ja" id="verdict"></div>
+    </div>
+    <p>
+      <button class="chip" id="again" type="button">別の一皿</button>
+      <span class="note" id="seed-note"></span>
+    </p>
+    <p class="note">
+      <strong>これは実際に作れる料理ではありません。</strong>
+      本書 628 篇の料理名を語のつながりとして数え、その並びをなぞっているだけです。
+      つまみが変えるのは「本書の言い回しにどれだけ忠実に従うか」であって、
+      珍しさではありません —— 実測では、まじめ側のほうが既存の料理名をよく引き当てる種類もあります。
+    </p>
+  </section>
+
+  <section>
+    <h2>いくつか並べてみる</h2>
+    <div class="cards" id="batch"></div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadJSON, esc, setActiveTab } from './js/app.js';
+import { generate, isInTheBook } from './js/generator.js';
+setActiveTab();
+
+const model = await loadJSON('data/generator.json');
+const kindsEl = document.getElementById('kinds');
+const nameEl = document.getElementById('name');
+const verdictEl = document.getElementById('verdict');
+const stepEl = document.getElementById('step');
+const stepLabel = document.getElementById('step-label');
+const seedNote = document.getElementById('seed-note');
+const batchEl = document.getElementById('batch');
+
+let kind = Object.keys(model.kinds)[1];
+let seed = Math.floor(Math.random() * 1e9);
+
+for (const [k, v] of Object.entries(model.kinds)) {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.type = 'button';
+  b.textContent = v.label;
+  b.addEventListener('click', () => { kind = k; draw(); });
+  kindsEl.appendChild(b);
+}
+
+document.getElementById('again').addEventListener('click', () => {
+  seed = (seed + 1) >>> 0;
+  draw();
+});
+stepEl.addEventListener('input', draw);
+
+function draw() {
+  const step = Number(stepEl.value);
+  kindsEl.querySelectorAll('.chip').forEach((b, i) =>
+    b.setAttribute('aria-pressed', String(Object.keys(model.kinds)[i] === kind)));
+  stepLabel.textContent = model.step_labels[step];
+
+  const made = generate(model, kind, step, seed);
+  nameEl.textContent = made || '(名前になりませんでした)';
+  verdictEl.textContent = made && isInTheBook(model, made)
+    ? 'これは本書に実在する料理名です。'
+    : '本書にこの名の料理はありません。';
+  seedNote.textContent = `種 ${seed}(同じ種・同じ種類・同じつまみなら、いつでも同じ名前が出ます)`;
+
+  batchEl.innerHTML = Array.from({ length: 8 }, (_, i) => {
+    const t = generate(model, kind, step, (seed + i + 1) >>> 0);
+    const real = t && isInTheBook(model, t);
+    return `<div class="card" style="cursor:default">
+      <div class="fr">${esc(t || '—')}</div>
+      <div class="meta">${real ? '<span class="badge ref">本書に実在</span>' : '<span class="badge">架空</span>'}</div>
+    </div>`;
+  }).join('');
+}
+draw();
+</script>
+</body>
+</html>

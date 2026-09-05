@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>くりや帖 — 1814 年の料理書を、いま読める一枚に</title>
+<meta name="description" content="A. B. ボーヴィリエ『料理人の技法』(1814)第一巻を、原文・現代綴り・日本語の三層で読む。レシピ 628・献立 13・材料から引く索引つき。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">くりや帖</a></h1>
+    <p class="sub">A. B. ボーヴィリエ『料理人の技法(L’Art du Cuisinier)』パリ・1814 年・第一巻 —— レシピ 628 篇と献立 13 組を、原文のまま読み、いまの言葉で読む。</p>
+    <nav class="tabs">
+      <a href="index.html">入口</a>
+      <a href="sagasu.html">探す</a>
+      <a href="yomu.html">読む</a>
+      <a href="taku.html">卓</a>
+      <a href="ami.html">網</a>
+      <a href="asobu.html">遊ぶ</a>
+      <a href="shikumi.html">仕組み</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <div class="ba">
+      <div class="pane before" id="before">読み込み中…</div>
+      <div class="pane after" id="after" hidden></div>
+    </div>
+    <input class="ba-range" type="range" id="slider" min="0" max="100" value="0" aria-label="1814 年の版面といまのカードを行き来する">
+    <p class="note" id="slider-label">つまみを右へ —— 1814 年の版面が、いまのカードに変わります。</p>
+  </section>
+
+  <section>
+    <h2>この本のこと</h2>
+    <p class="lead">
+      著者アントワーヌ・ボーヴィリエ(1754–1817)は、革命前にプロヴァンス伯 —— のちのルイ 18 世 —— の
+      <span class="serif">officier de bouche</span> を務め、1782 年にリシュリュー通りで
+      「ラ・グランド・タヴェルヌ・ド・ロンドル」を開きました。パリ最初の本格的なレストランとされる店です。
+      この本は、宮廷の厨房の技術が革命を経てレストランという新しい場へ移し替えられる、
+      その転換点に立つ一冊として読めます。
+    </p>
+    <p class="note">
+      底本は Project Gutenberg #64976(フランス国立図書館 Gallica の画像から起こされたフランス語原文)。
+      パブリックドメインです。<strong>第二巻は Project Gutenberg に収録されていません。</strong>
+      本文は第一巻だけを扱っています —— この本は自分の第二巻を何度も参照するので、
+      たどれない参照が残ります(<a href="ami.html">網</a>で数えています)。
+    </p>
+  </section>
+
+  <section>
+    <h2>できること</h2>
+    <div class="cards">
+      <a class="card" href="sagasu.html">
+        <div class="fr">材料から探す</div>
+        <div class="ja">鶏・バター・松露…… 本書に実際に出てくる材料 151 種から引きます。</div>
+      </a>
+      <a class="card" href="yomu.html">
+        <div class="fr">三つの層で読む</div>
+        <div class="ja">1814 年の綴り / 現代の綴り / 日本語。材料と手順は色分けします。</div>
+      </a>
+      <a class="card" href="taku.html">
+        <div class="fr">卓を眺める</div>
+        <div class="ja">40 人の食卓に何をどう並べたか。献立 13 組・皿 488。</div>
+      </a>
+      <a class="card" href="ami.html">
+        <div class="fr">参照の網をたどる</div>
+        <div class="ja">この本は自分自身を 307 回参照します。切れた参照も隠しません。</div>
+      </a>
+      <a class="card" href="asobu.html">
+        <div class="fr">架空の一皿を作る</div>
+        <div class="ja">本書の料理名の並び方から、ありそうでない名前を作ります。</div>
+      </a>
+      <a class="card" href="shikumi.html">
+        <div class="fr">仕組みを見る</div>
+        <div class="ja">数えた結果と、<strong>測って捨てた見込み</strong>をそのまま置いてあります。</div>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <a href="https://github.com/twill3c/kuriya-cho/blob/main/LICENSE">MIT License</a>
+  <span>© 2026 坂田哲朗</span>
+  <span class="fsep">・</span><a href="https://github.com/twill3c/kuriya-cho">GitHub</a>
+  <span class="fsep">・</span><a id="link-howto" href="https://claude.ai/code/artifact/PLACEHOLDER-HOWTO">くりや帖の読み方</a>
+  <span class="fsep">・</span><a id="link-design" href="https://claude.ai/code/artifact/PLACEHOLDER-DESIGN">くりや帖の設計図</a>
+  <span class="fsep">・</span><a href="https://app-menu-amber.vercel.app/">App Menu</a>
+</footer>
+
+<script type="module">
+import { loadJSON, renderBody, esc, setActiveTab } from './js/app.js';
+setActiveTab();
+
+const before = document.getElementById('before');
+const after = document.getElementById('after');
+const slider = document.getElementById('slider');
+const label = document.getElementById('slider-label');
+
+const entry = await loadJSON('data/entry.json');
+before.textContent = entry.facsimile;
+
+const layers = ['orig', 'modern', 'ja'];
+function card(layer) {
+  const body = renderBody(entry, layer) || renderBody(entry, 'modern');
+  const heading = layer === 'ja' ? entry.title_ja : entry.title;
+  const sub = layer === 'ja' ? entry.title : entry.title_ja;
+  return `
+    <h2 style="border:0;margin-bottom:.2rem">${esc(heading)}</h2>
+    <p class="note" style="margin-top:0">${esc(sub)}</p>
+    <div class="legend" style="margin:.6rem 0 .9rem">
+      <span class="ingredient">材料</span><span class="vessel">道具</span>
+      <span class="quantity">分量</span><span class="heat">火</span><span class="action">工程</span>
+    </div>
+    <div class="body-text hl ${layer === 'orig' ? 'orig' : ''}">${body}</div>`;
+}
+
+const LABELS = [
+  'つまみを右へ —— 1814 年の版面が、いまのカードに変わります。',
+  '1814 年の綴りのまま、材料と手順に色をつけました。',
+  '綴りを現代に寄せました。点線の下線が、変えた語です。',
+  '日本語にしました。原文へはいつでも戻れます(<a href="yomu.html">読む</a>)。',
+];
+
+function update() {
+  const v = Number(slider.value);
+  const step = v < 12 ? 0 : v < 45 ? 1 : v < 78 ? 2 : 3;
+  if (step === 0) {
+    after.hidden = true;
+    before.style.opacity = '1';
+  } else {
+    after.hidden = false;
+    after.innerHTML = card(layers[step - 1]);
+    after.style.opacity = String(Math.min(1, (v - 12) / 18));
+  }
+  label.innerHTML = LABELS[step];
+}
+slider.addEventListener('input', update);
+update();
+</script>
+</body>
+</html>

@@ -35,8 +35,10 @@ from dataclasses import dataclass
 
 from pipeline.pg_parse import parse_sections
 
-BEGIN = ""
-END = ""
+# 連鎖の端を表す印。**制御文字を使わない** —— 目に見えず、JSON に入り、
+# 字種検査(text_hygiene)にも引っかかる。表題に `<` は一度も出ないので衝突しない
+BEGIN = "<begin>"
+END = "<end>"
 
 # 章をいくつかの「種類」にまとめる。1 品しか無い章(DAIM)では連鎖が作れない
 KINDS: dict[str, tuple[str, tuple[str, ...]]] = {

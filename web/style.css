@@ -1,0 +1,255 @@
+/* くりや帖 — 紙とインクの二色を基調にする。
+   色数を増やすのは五分類のハイライトだけ(SPEC §5)。
+   外部のフォント・スクリプトは読み込まない(課金経路と外部依存をゼロにする)。 */
+
+:root {
+  --paper: #f4efe4;
+  --paper-deep: #e9e1d0;
+  --paper-card: #fbf8f1;
+  --ink: #241d16;
+  --ink-soft: #5c5142;
+  --ink-faint: #8d8271;
+  --rule: #d6cbb4;
+  --accent: #7a2e1e;
+
+  /* 五分類。紙の上で沈まないよう、下線の色と薄い地色を対にする */
+  --c-ingredient: #9a6b16;
+  --c-ingredient-bg: #f4e6c6;
+  --c-vessel: #3d5a80;
+  --c-vessel-bg: #dee7f2;
+  --c-quantity: #3f6d4e;
+  --c-quantity-bg: #dcecdf;
+  --c-heat: #a8401f;
+  --c-heat-bg: #f6dfd5;
+  --c-action: #5c3c78;
+  --c-action-bg: #e8dff2;
+
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", YuMincho, Didot, "Bodoni MT", Georgia, serif;
+  --sans: "Hiragino Sans", "Yu Gothic", YuGothic, Meiryo, system-ui, -apple-system, sans-serif;
+  --footer-h: 2.6rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 0 calc(var(--footer-h) + 1rem);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.9;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3, .serif { font-family: var(--serif); font-weight: 600; letter-spacing: .02em; }
+
+a { color: var(--accent); }
+a:hover { color: #4d1a10; }
+
+.wrap { max-width: 60rem; margin: 0 auto; padding: 0 1.1rem; }
+
+/* --- 帯と案内 ------------------------------------------------------------ */
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background: linear-gradient(180deg, var(--paper-deep), var(--paper));
+}
+.masthead .wrap { padding-top: 1.1rem; padding-bottom: .8rem; }
+.masthead h1 { margin: 0; font-size: 1.5rem; }
+.masthead h1 a { color: var(--ink); text-decoration: none; }
+.masthead .sub { margin: .15rem 0 0; color: var(--ink-soft); font-size: .82rem; line-height: 1.7; }
+
+nav.tabs { display: flex; flex-wrap: wrap; gap: .1rem .4rem; margin-top: .7rem; }
+nav.tabs a {
+  padding: .18rem .62rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper-card);
+  color: var(--ink-soft);
+  font-size: .82rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+nav.tabs a[aria-current="page"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+main { padding-top: 1.3rem; }
+section { margin-bottom: 2.2rem; }
+h2 { font-size: 1.12rem; margin: 0 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid var(--rule); }
+p.lead { color: var(--ink-soft); margin-top: 0; }
+.note { color: var(--ink-faint); font-size: .8rem; line-height: 1.8; }
+
+/* --- カード -------------------------------------------------------------- */
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .7rem; }
+.card {
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .7rem .8rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  /* カードは <a> でも <button> でも同じ見た目にする。
+     下線と青色が付くと「文中のリンク」に見えて、面として押せることが伝わらない */
+  text-decoration: none;
+  color: var(--ink);
+}
+.card:hover { border-color: var(--accent); }
+.card:hover .fr { color: var(--accent); }
+.card .fr { font-family: var(--serif); font-size: .95rem; line-height: 1.5; }
+.card .ja { color: var(--ink-soft); font-size: .85rem; margin-top: .15rem; line-height: 1.6; }
+.card .meta { margin-top: .45rem; color: var(--ink-faint); font-size: .74rem; }
+.badge {
+  display: inline-block;
+  padding: 0 .38rem;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-size: .7rem;
+  color: var(--ink-soft);
+  background: var(--paper-deep);
+  margin-right: .3rem;
+}
+.badge.ja { border-color: #a9c0a2; background: #e4efe0; color: #3f6d4e; }
+.badge.ref { border-color: #c9b48f; background: #f1e6cf; color: #8a6a2b; }
+
+/* --- 三層の本文 ---------------------------------------------------------- */
+
+.layers { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.layers button {
+  padding: .25rem .8rem;
+  border: 1px solid var(--rule);
+  background: var(--paper-card);
+  border-radius: 2px;
+  font: inherit;
+  font-size: .84rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.layers button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.body-text { font-size: 1rem; line-height: 2.05; }
+.body-text p { margin: 0 0 1.05rem; }
+.body-text.orig { font-family: var(--serif); }
+
+mark.sp { background: none; color: inherit; padding: 0 .05em; border-radius: 2px; }
+.hl mark.sp[data-c="ingredient"] { background: var(--c-ingredient-bg); box-shadow: 0 1px 0 var(--c-ingredient); }
+.hl mark.sp[data-c="vessel"] { background: var(--c-vessel-bg); box-shadow: 0 1px 0 var(--c-vessel); }
+.hl mark.sp[data-c="quantity"] { background: var(--c-quantity-bg); box-shadow: 0 1px 0 var(--c-quantity); }
+.hl mark.sp[data-c="heat"] { background: var(--c-heat-bg); box-shadow: 0 1px 0 var(--c-heat); }
+.hl mark.sp[data-c="action"] { background: var(--c-action-bg); box-shadow: 0 1px 0 var(--c-action); }
+
+.chg { border-bottom: 2px dotted var(--accent); cursor: help; }
+.xref { color: var(--accent); text-decoration: underline dotted; cursor: pointer; }
+.xref.dead { color: var(--ink-faint); text-decoration: underline dotted; cursor: help; }
+
+.legend { display: flex; flex-wrap: wrap; gap: .45rem; font-size: .76rem; color: var(--ink-soft); }
+.legend span { padding: 0 .4rem; border-radius: 2px; }
+.legend .ingredient { background: var(--c-ingredient-bg); box-shadow: 0 1px 0 var(--c-ingredient); }
+.legend .vessel { background: var(--c-vessel-bg); box-shadow: 0 1px 0 var(--c-vessel); }
+.legend .quantity { background: var(--c-quantity-bg); box-shadow: 0 1px 0 var(--c-quantity); }
+.legend .heat { background: var(--c-heat-bg); box-shadow: 0 1px 0 var(--c-heat); }
+.legend .action { background: var(--c-action-bg); box-shadow: 0 1px 0 var(--c-action); }
+
+/* --- チップ -------------------------------------------------------------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+.chip {
+  padding: .16rem .6rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper-card);
+  font: inherit;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip .n { color: var(--ink-faint); font-size: .72rem; margin-left: .25rem; }
+.chip[aria-pressed="true"] .n { color: #f0dcd6; }
+
+input[type="range"] { accent-color: var(--accent); }
+
+input[type="search"], input[type="text"] {
+  padding: .35rem .6rem;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-card);
+  font: inherit;
+  color: inherit;
+  min-width: 12rem;
+}
+
+/* 「なぜ出たか」の細い横バー。数値は出さない(SPEC §5) */
+.why { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; }
+.bar { height: 3px; background: var(--paper-deep); border-radius: 2px; flex: 0 0 3.5rem; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+
+/* --- 入口のビフォー/アフター --------------------------------------------- */
+
+.ba { position: relative; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; background: var(--paper-card); }
+.ba .pane { padding: 1rem 1.1rem; min-height: 20rem; }
+.ba .after { position: absolute; inset: 0; background: var(--paper-card); }
+.ba .before { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; white-space: pre-wrap; font-size: .74rem; line-height: 1.75; color: #3b3227; }
+.ba-range { width: 100%; margin: .8rem 0 .2rem; }
+
+/* --- 表 ------------------------------------------------------------------ */
+
+table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+th, td { border-bottom: 1px solid var(--rule); padding: .32rem .5rem; text-align: left; vertical-align: top; }
+th { color: var(--ink-soft); font-weight: 600; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll-x { overflow-x: auto; }
+
+/* --- 献立 ---------------------------------------------------------------- */
+
+.menu-course { margin-bottom: 1.1rem; }
+.menu-course h3 { margin: 0 0 .25rem; font-size: .95rem; }
+.dishes { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .1rem .9rem; }
+.dish { font-size: .86rem; line-height: 1.7; }
+.dish .n { color: var(--ink-faint); margin-right: .3rem; font-variant-numeric: tabular-nums; }
+.plate { color: var(--ink-faint); font-size: .72rem; }
+
+/* --- 生成 ---------------------------------------------------------------- */
+
+.dish-card {
+  border: 1px solid var(--rule);
+  background: repeating-linear-gradient(0deg, var(--paper-card), var(--paper-card) 22px, #f6f1e6 22px, #f6f1e6 23px);
+  border-radius: 3px;
+  padding: 1.4rem 1.2rem;
+  text-align: center;
+}
+.dish-card .name { font-family: var(--serif); font-size: 1.35rem; line-height: 1.5; }
+.dish-card .ja { color: var(--ink-soft); margin-top: .3rem; font-size: .9rem; }
+
+/* fleet: fixed footer */
+.app-footer {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: var(--footer-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .1rem;
+  padding: 0 .7rem;
+  background: var(--paper-deep);
+  border-top: 1px solid var(--rule);
+  font-size: .74rem;
+  color: var(--ink-soft);
+  z-index: 50;
+}
+.app-footer a { color: var(--ink-soft); text-decoration: none; }
+.app-footer a:hover { text-decoration: underline; }
+.app-footer .fsep { margin: 0 .3rem; color: var(--ink-faint); }
+
+@media (max-width: 640px) {
+  :root { --footer-h: 3.6rem; }
+  body { font-size: 14px; }
+  .cards { grid-template-columns: 1fr; }
+  .dishes { grid-template-columns: 1fr; }
+  .body-text { line-height: 2.1; }
+}
