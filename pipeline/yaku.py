@@ -124,6 +124,11 @@ def check_scripts() -> list[dict[str, object]]:
     sources += [(f"title:{k}", v) for k, v in load_titles().items()]
     for rid, paragraphs in load_bodies().items():
         sources += [(f"body:{rid}#{i}", p) for i, p in enumerate(paragraphs)]
+    # 導入文と緒言も**訳文である**。本文だけを見ていると、ここが検査の外に落ちる
+    # (2026-09-06 に実際に落ちていた。訳を足した側が検査の対象も足す必要がある)
+    for sid, paragraphs in load_leads().items():
+        sources += [(f"lead:{sid}#{i}", p) for i, p in enumerate(paragraphs)]
+    sources += [(f"discours#{i}", p) for i, p in enumerate(load_discours())]
     for term in load_glossary():
         sources.append((f"glossary:{term['fr']}", term["ja"]))
         if term.get("note"):
@@ -157,6 +162,9 @@ def coverage() -> dict[str, object]:
         "sections_translated": sum(1 for sid in sids if sid in sec),
         "sections_missing": [sid for sid in sids if sid not in sec],
         "bodies_translated": sum(1 for rid in rids if rid in bodies),
+        "leads": sum(1 for s in sections if s.lead),
+        "leads_translated": sum(1 for s in sections if s.lead and s.sid in load_leads()),
+        "discours_paragraphs": len(load_discours()),
         "glossary_terms": len(load_glossary()),
     }
 
@@ -166,6 +174,8 @@ if __name__ == "__main__":
     print(f"章名     {c['sections_translated']:>4} / {c['sections']}")
     print(f"料理名   {c['titles_translated']:>4} / {c['recipes']}")
     print(f"本文     {c['bodies_translated']:>4} / {c['recipes']}")
+    print(f"導入文   {c['leads_translated']:>4} / {c['leads']}")
+    print(f"緒言     {c['discours_paragraphs']:>4} 段")
     print(f"用語集   {c['glossary_terms']:>4} 語")
     if c["titles_missing"]:
         print(f"未訳の料理名: {c['titles_missing'][:20]}")  # type: ignore[index]

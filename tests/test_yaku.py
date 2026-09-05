@@ -61,6 +61,24 @@ def test_t141_translated_bodies_have_the_same_paragraph_count():
         assert len(paragraphs) == len(recipes[rid].paragraphs), rid
 
 
+@requires_book
+def test_t141_section_leads_are_translated_with_the_same_paragraph_count():
+    """章の導入文も**訳文の一部**である。
+
+    本文 628 篇だけを数えていると、導入文は分母にも字種検査にも入らないまま
+    出荷されうる(2026-09-06 に実際そうなっていた)。訳を足す側が
+    検査の対象も足さないと、**新しい訳は生まれた瞬間から無検査**になる。
+    """
+    leads = yaku.load_leads()
+    sections = {s.sid: s for s in parse_sections()}
+    assert set(leads) <= set(sections), sorted(set(leads) - set(sections))
+    for sid, section in sections.items():
+        if not section.lead:
+            continue
+        assert sid in leads, f"導入文が未訳: {sid}"
+        assert len(leads[sid]) == len(section.lead), sid
+
+
 # --- T-142: 字種検査(G-08)---------------------------------------------------
 
 
