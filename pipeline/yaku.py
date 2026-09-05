@@ -47,11 +47,35 @@ def load_glossary() -> list[dict[str, str]]:
 
 
 def load_bodies() -> dict[str, list[str]]:
-    """レシピ本文の和訳(段落の配列)。未訳のレシピは鍵ごと存在しない。"""
-    path = YAKU_DIR / "bodies.json"
+    """レシピ本文の和訳(段落の配列)。未訳のレシピは鍵ごと存在しない。
+
+    **章ごとにファイルを分ける。** 628 篇を一つの JSON に束ねると 1 MB を超え、
+    一章だけ直したいときにファイル全体を書き直すことになる。鍵の重複は事故なので落とす。
+    """
+    out: dict[str, list[str]] = {}
+    for path in sorted((YAKU_DIR / "bodies").glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for rid, paragraphs in data["bodies"].items():
+            if rid in out:
+                raise ValueError(f"本文の訳が重複している: {rid}({path.name})")
+            out[rid] = paragraphs
+    return out
+
+
+def load_leads() -> dict[str, list[str]]:
+    """章の導入文(レシピ見出しの前に置かれた地の文)の和訳。"""
+    path = YAKU_DIR / "leads.json"
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))["bodies"]
+    return json.loads(path.read_text(encoding="utf-8"))["leads"]
+
+
+def load_discours() -> list[str]:
+    """緒言(Discours préliminaire)の和訳。"""
+    path = YAKU_DIR / "discours.json"
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))["paragraphs"]
 
 
 # --- 字種検査(G-08)---------------------------------------------------------
@@ -71,9 +95,12 @@ def script_of(ch: str) -> str:
         name = unicodedata.name(ch)
     except ValueError:
         return "UNKNOWN"
-    for script in ("HIRAGANA", "KATAKANA", "CJK", "LATIN", "GREEK", "CYRILLIC"):
+    # `々`(U+3005)は Unicode 名が IDEOGRAPHIC ITERATION MARK で始まり、
+    # 文字種別は Lm(修飾文字)なので `isalnum()` を通る。前置きを増やさないと
+    # **正しい日本語が落ちる** —— 2026-09-05 に「別々」で実際に落ちた
+    for script in ("HIRAGANA", "KATAKANA", "CJK", "IDEOGRAPHIC", "LATIN", "GREEK", "CYRILLIC"):
         if name.startswith(script):
-            return script
+            return "CJK" if script == "IDEOGRAPHIC" else script
     return "OTHER"
 
 
