@@ -19,6 +19,9 @@
 ——「パリ最初の本格的なレストラン」とされる人物である。この本は、宮廷の厨房の技術が
 革命を経てレストランという新しい場に移し替えられる、その転換点に立つテキストとして読める。
 
+**本番** <https://kuriya-cho.vercel.app>(Vercel・CLI 運用、スコープ `twill3c-8670s-projects`)。
+リポジトリ <https://github.com/twill3c/kuriya-cho>。
+
 ## 2. 素材と権利
 
 | 素材 | 出所 | 扱い |

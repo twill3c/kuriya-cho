@@ -114,11 +114,29 @@ def serve():
             httpd.shutdown()
 
 
-def check(shot_dir: Path | None = None, pages: tuple[str, ...] = PAGES) -> list[dict]:
+@contextmanager
+def _base_url(external: str | None):
+    """`--base` が無ければ手元の木を配って測る。あれば**本番**を測る。
+
+    手元が緑でも本番が緑とは限らない —— 配られる木は除外設定で削られており、
+    経路も配信も別物である。だから本番に対する検品を別に持つ。
+    """
+    if external:
+        yield external.rstrip("/")
+    else:
+        with serve() as base:
+            yield base
+
+
+def check(
+    shot_dir: Path | None = None,
+    pages: tuple[str, ...] = PAGES,
+    base_url: str | None = None,
+) -> list[dict]:
     from playwright.sync_api import sync_playwright
 
     results: list[dict] = []
-    with serve() as base, sync_playwright() as p:
+    with _base_url(base_url) as base, sync_playwright() as p:
         browser = p.chromium.launch()
         for name, width, height in VIEWPORTS:
             ctx = browser.new_context(viewport={"width": width, "height": height})
@@ -184,8 +202,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="実ブラウザ検品")
     ap.add_argument("--shot", type=Path, help="スクリーンショットの保存先")
     ap.add_argument("--json", action="store_true", help="生の結果を JSON で出す")
+    ap.add_argument("--base", help="本番など外部の URL を検品する(省略時は手元の web/)")
     args = ap.parse_args()
-    results = check(shot_dir=args.shot)
+    results = check(shot_dir=args.shot, base_url=args.base)
     if args.json:
         print(json.dumps(results, ensure_ascii=False, indent=2))
         return 0

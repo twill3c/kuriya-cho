@@ -3,6 +3,8 @@
 1814 年にパリで出た料理書 —— A. B. ボーヴィリエ『料理人の技法(L'Art du Cuisinier)』第一巻を、
 **いま読める一枚のカードに変える**。
 
+**本番 <https://kuriya-cho.vercel.app>**
+
 原文は Project Gutenberg #64976(底本は BnF/Gallica の画像)。パブリックドメイン。
 第二巻は PG に無いので、本アプリの対象は第一巻だけである。
 
