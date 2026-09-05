@@ -1,0 +1,1 @@
+{"v": "1.2", "ts": "2026-09-05T20:35:05+09:00", "project": "kuriya-cho", "loop_id": "loop_007", "event": "loop_start", "data": {"goal": "くりや帖 L6: 解説アーティファクト 2 本の差し込み、GitHub 公開、Vercel 本番デプロイ、app-menu 登録", "spec_refs": ["F-12"], "scaffold_version": "1.30.0", "agent": "claude-opus-5"}}

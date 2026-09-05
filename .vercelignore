@@ -1,0 +1,11 @@
+# 配るのは web/ だけ(vercel.json の outputDirectory)。
+# 素材の生ファイルは 5.8 MB あり、そのうち現代フランス語の語彙集 4.5 MB は
+# **正規化の効きを外から判定する道具**であって、配るものではない(SPEC §2)。
+data/raw/
+__pycache__/
+.pytest_cache/
+logs/
+tests/
+harness/
+pipeline/
+node_modules/

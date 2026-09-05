@@ -32,6 +32,8 @@ PAGES = (
 FOOTER_LINKS = (
     "https://github.com/twill3c/kuriya-cho/blob/main/LICENSE",
     "https://github.com/twill3c/kuriya-cho",
+    "https://claude.ai/code/artifact/fc93785a-9655-4180-926b-74bbd470e7f3",  # くりや帖の読み方
+    "https://claude.ai/code/artifact/dec80752-47ad-4fdb-b7b4-d0ad9c6cd193",  # くりや帖の設計図
     "https://app-menu-amber.vercel.app/",
 )
 
@@ -53,6 +55,7 @@ def test_t171_footer_on_every_page():
             assert link in src, (page, link)
         assert "© 2026 坂田哲朗" in src, page
         assert 'id="link-howto"' in src and 'id="link-design"' in src, page
+        assert "PLACEHOLDER" not in src, f"{page}: 解説アーティファクトの URL が差し込まれていない"
 
 
 def test_t171_footer_is_fixed_and_leaves_room():
