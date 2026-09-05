@@ -1,23 +1,9 @@
 [
   {
-    "key": "pg64976",
-    "url": "https://www.gutenberg.org/cache/epub/64976/pg64976.txt",
-    "bytes": 609553,
-    "sha256": "92bd62876da128c0784113014a642e6e53049cf9ee3714ba59be18e3b1c83b15",
-    "note": "Beauvilliers, L'Art du Cuisinier, tome I (1814). Public domain (PG #64976)."
-  },
-  {
-    "key": "fr_words",
-    "url": "https://raw.githubusercontent.com/words/an-array-of-french-words/master/index.json",
-    "bytes": 4568949,
-    "sha256": "75e81515ed0714c8d98d6aa0cc71ba3094834653de005f9bdbb874257639e92d",
-    "note": "現代フランス語の屈折形リスト(Grammalecte/Dicollecte 由来)。正規化の外部オラクル。"
-  },
-  {
-    "key": "fr_words_alt",
-    "url": "https://raw.githubusercontent.com/Taknok/French-Wordlist/master/francais.txt",
-    "bytes": 228279,
-    "sha256": "d1be3a97449822ac5dde5276ac50af8e3a23b61d72de71e67c9cb303d34aee87",
-    "note": "現代フランス語の第二の語彙集。オラクルを一本に頼らないための突合用。"
+    "key": "pg6966",
+    "url": "https://www.gutenberg.org/ebooks/6966.txt.utf-8",
+    "bytes": 429524,
+    "sha256": "2c6357048886e79d3eb475580a11540ebdf5fcbdb841bb5ee0994017e522203b",
+    "note": "Auguste Hélie, Traité Général de la Cuisine Maigre (Paris, 1896-12 序)。PG #6966。**対照コーパス** —— 1835 年の綴り改革より後、同じジャンルのフランス語料理書。1814 年の綴りの遠さを測るための基準線に使う。"
   }
 ]

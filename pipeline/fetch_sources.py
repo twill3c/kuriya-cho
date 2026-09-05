@@ -43,6 +43,16 @@ SOURCES: tuple[Source, ...] = (
         note="Beauvilliers, L'Art du Cuisinier, tome I (1814). Public domain (PG #64976).",
     ),
     Source(
+        key="pg6966",
+        url="https://www.gutenberg.org/ebooks/6966.txt.utf-8",
+        filename="pg6966.txt",
+        note=(
+            "Auguste Hélie, Traité Général de la Cuisine Maigre (Paris, 1896-12 序)。"
+            "PG #6966。**対照コーパス** —— 1835 年の綴り改革より後、同じジャンルの"
+            "フランス語料理書。1814 年の綴りの遠さを測るための基準線に使う。"
+        ),
+    ),
+    Source(
         key="fr_words",
         url="https://raw.githubusercontent.com/words/an-array-of-french-words/master/index.json",
         filename="fr_words.json",
