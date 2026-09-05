@@ -1,0 +1,6 @@
+data/raw/*
+!data/raw/SOURCES.json
+__pycache__/
+.pytest_cache/
+node_modules/
+.vercel
