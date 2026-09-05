@@ -32,6 +32,7 @@
 
   <section id="list-wrap" hidden>
     <h2 id="list-head">項</h2>
+    <div id="lead" hidden></div>
     <div class="cards" id="list"></div>
   </section>
 
@@ -74,6 +75,7 @@ const sectionsEl = document.getElementById('sections');
 const listWrap = document.getElementById('list-wrap');
 const listEl = document.getElementById('list');
 const listHead = document.getElementById('list-head');
+const leadEl = document.getElementById('lead');
 const detail = document.getElementById('detail');
 const bodyEl = document.getElementById('d-body');
 let current = null;
@@ -102,6 +104,19 @@ function showSection(sid) {
   sectionsEl.querySelectorAll('.chip').forEach((b, i) =>
     b.setAttribute('aria-pressed', String(index.sections[i].sid === sid)));
   listHead.textContent = `${s.name_ja} — ${s.name}(${s.count} 篇)`;
+  // 章の導入文。既定は日本語で、原文は常に一歩で戻れるところに置く
+  // (三層のカードと同じ約束。訳だけを見せて原文を隠さない)
+  const lead = s.lead_ja && s.lead_ja.length ? s.lead_ja : s.lead;
+  const isJa = Boolean(s.lead_ja && s.lead_ja.length);
+  leadEl.hidden = !(s.lead && s.lead.length);
+  if (!leadEl.hidden) {
+    leadEl.innerHTML =
+      `<div class="lead-body">${lead.map((p) => `<p>${esc(p)}</p>`).join('')}</div>` +
+      (isJa
+        ? `<details class="lead-orig"><summary>1814 年の原文を見る</summary>` +
+          `${s.lead.map((p) => `<p>${esc(p)}</p>`).join('')}</details>`
+        : '');
+  }
   listWrap.hidden = false;
   listEl.innerHTML = index.recipes
     .filter((r) => r.sid === sid)

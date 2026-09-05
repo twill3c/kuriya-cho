@@ -97,6 +97,32 @@ def toc_text() -> str:
     return raw[start:end]
 
 
+DISCOURS_START = "DISCOURS PRÉLIMINAIRE."
+
+
+def discours_paragraphs() -> list[str]:
+    """緒言(Discours préliminaire)を段落に割る。
+
+    緒言は `BODY_START` より前にあるので `body_text()` には入らない。
+    **本文の数え上げからも外れる** ので、ここで独立した単位として取り出しておく
+    (訳の分母に載せないと、訳していないことが数に出ない)。
+
+    終端は `BODY_START` ではなく **献立の開始**(`SERVICES DE TABLE.`)である。
+    緒言と本文のあいだには 13 献立が挟まっており、そこは `menus.py` が別の単位として
+    取っている。`BODY_START` まで取ると**同じ行が緒言と献立の両方に属する**ことになり、
+    消費率の検算(HC-164)が「全部が帰属した」まま二重に数える。
+    """
+    raw = load_text("pg64976")
+    start = raw.index(DISCOURS_START) + len(DISCOURS_START)
+    end = raw.index("SERVICES DE TABLE.")
+    out: list[str] = []
+    for block in raw[start:end].split("\n\n"):
+        text = " ".join(line.strip() for line in block.strip().splitlines() if line.strip())
+        if text:
+            out.append(text)
+    return out
+
+
 def _is_upper_heading(line: str) -> bool:
     s = line.strip()
     return bool(s) and len(s) >= 4 and UPPER_LINE.fullmatch(s) is not None

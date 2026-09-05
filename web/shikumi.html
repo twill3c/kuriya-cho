@@ -73,9 +73,11 @@
     <h2>和訳の充填</h2>
     <div class="scroll-x"><table id="yaku"></table></div>
     <p class="note">
-      本文の和訳は途中です。分子と分母で出しているのは、訳していないものを訳したように
-      見せないためです。訳す順番は<strong>他の項からの被参照が多い順</strong>で、
-      気分ではなく数が決めています。
+      レシピ本文 628 篇・章の導入文・著者自身の緒言まで、<strong>第一巻の全文</strong>を
+      訳しました。それでも分子と分母で出しているのは、あとから原文の側が増えたときに
+      <strong>訳が追いついていないことが数に出る</strong>ようにしておくためです。
+      訳文は段落数を原文と一致させ、字種検査を通しています。分量(リーヴル・オンス・
+      ヴェールなど)は当時の器が定まらないので<strong>換算していません</strong>。
     </p>
   </section>
 
@@ -158,6 +160,8 @@ document.getElementById('yaku').innerHTML = `
   <tr><th>章名</th><td class="num">${y.sections_translated} / ${y.sections}</td></tr>
   <tr><th>料理名</th><td class="num">${y.titles_translated} / ${y.recipes}</td></tr>
   <tr><th>本文</th><td class="num">${y.bodies_translated} / ${y.recipes}</td></tr>
+  <tr><th>章の導入文</th><td class="num">${y.leads_translated} / ${y.leads}</td></tr>
+  <tr><th>緒言</th><td class="num">${y.discours_paragraphs} 段</td></tr>
   <tr><th>用語集</th><td class="num">${y.glossary_terms} 語</td></tr>`;
 
 document.getElementById('sources').innerHTML =

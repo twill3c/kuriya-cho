@@ -10,7 +10,7 @@ import re
 
 import pytest
 
-from pipeline import yaku
+from pipeline import pg_parse, yaku
 from pipeline.pg_parse import parse_sections
 from tests.conftest import requires_book
 
@@ -77,6 +77,32 @@ def test_t141_section_leads_are_translated_with_the_same_paragraph_count():
             continue
         assert sid in leads, f"導入文が未訳: {sid}"
         assert len(leads[sid]) == len(section.lead), sid
+
+
+@requires_book
+def test_t141_discours_is_translated_paragraph_for_paragraph():
+    """緒言(著者自身の序文)も訳文である。
+
+    緒言は本文の前・献立の前にあり、`body_text()` にも `menus` にも入らない。
+    **どの分母にも載らない位置**なので、明示的に数えないと存在ごと落ちる。
+    """
+    original = pg_parse.discours_paragraphs()
+    assert len(original) == 7, len(original)
+    assert len(yaku.load_discours()) == len(original)
+
+
+@requires_book
+def test_t141_discours_does_not_swallow_the_menus():
+    """緒言と献立の境界(HC-164 の消費率が二重計上にならないこと)。
+
+    緒言の終端を `BODY_START` にすると、あいだの 13 献立が緒言にも属してしまう。
+    同じ行が二つの出力単位に帰属しても消費率は 1.00000 のまま緑になるので、
+    **境界そのものを直接押さえる**。
+    """
+    text = " ".join(pg_parse.discours_paragraphs())
+    assert "SERVICES DE TABLE" not in text
+    assert "Quatre Potages" not in text
+    assert "derniers adieux" in text  # 緒言の最終行までは取れている
 
 
 # --- T-142: 字種検査(G-08)---------------------------------------------------

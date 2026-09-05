@@ -79,6 +79,13 @@ h2 { font-size: 1.12rem; margin: 0 0 .5rem; padding-bottom: .25rem; border-botto
 p.lead { color: var(--ink-soft); margin-top: 0; }
 .note { color: var(--ink-faint); font-size: .8rem; line-height: 1.8; }
 
+/* 章の導入文。本文カードと同じ紙面で、原文は畳んで一歩うしろに置く */
+#lead { margin: 0 0 1rem; padding-left: .8rem; border-left: 2px solid var(--rule); }
+#lead p { margin: 0 0 .6rem; line-height: 2; color: var(--ink-soft); }
+#lead .lead-orig { margin-top: .3rem; }
+#lead .lead-orig summary { cursor: pointer; font-size: .8rem; color: var(--ink-faint); }
+#lead .lead-orig p { font-size: .85rem; color: var(--ink-faint); margin-top: .5rem; }
+
 /* --- カード -------------------------------------------------------------- */
 
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .7rem; }

@@ -43,6 +43,7 @@ def build_book() -> dict[str, object]:
     titles_ja = yaku.load_titles()
     sections_ja = yaku.load_sections()
     bodies_ja = yaku.load_bodies()
+    leads_ja = yaku.load_leads()
 
     out_sections = []
     out_recipes = []
@@ -53,6 +54,7 @@ def build_book() -> dict[str, object]:
                 "name": s.name,
                 "name_ja": sections_ja.get(s.sid, ""),
                 "lead": s.lead,
+                "lead_ja": leads_ja.get(s.sid, []),
                 "count": len(s.recipes),
             }
         )
